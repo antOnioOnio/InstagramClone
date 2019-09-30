@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">InstagramClone</string>
+
+    <!--fragments names-->
+    <string name="edit_profile_fragment">Edit Profile</string>
+    <string name="sign_out_fragment">Sign Out</string>
+    <string name="profile_fragment">Profile</string>
+
+    <!--Dialogs names-->
+    <string name="confirm_password">ConfirmPasswordDialog</string>
+
+    <!--Firebase message-->
+    <string name="auth_failed">Failed to Authenticate</string>
+    <string name="auth_succes">Authentication Succes</string>
+
+    <!--Firebase data base fields-->
+    <string name="dbname_users">users</string>
+    <string name="dbname_user_account_settings">user_account_settings</string>
+    <string name="field_username">username</string>
+    <string name="field_website">website</string>
+    <string name="field_phone_number">phone_number</string>
+    <string name="field_display_name">display_name</string>
+    <string name="field_description">description</string>
+    <string name="field_email">email</string>
+
+    <!--Intent extras-->
+    <string name="calling_activity">calling_activity</string>
+
+    <!--Activity names-->
+    <string name="profile_activity">profile_activity</string>
+
+
+
+</resources>
