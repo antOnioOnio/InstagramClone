@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 
 import com.example.instagramclone.R;
 
+// this is a test for branch 2
 public class CameraFragment extends Fragment {
     private static final String TAG = "CameraFragment";
 
