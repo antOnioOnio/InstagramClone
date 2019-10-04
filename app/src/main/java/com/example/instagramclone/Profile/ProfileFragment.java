@@ -1,5 +1,6 @@
 package com.example.instagramclone.Profile;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.Image;
@@ -17,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -25,11 +27,13 @@ import android.widget.TextView;
 
 import com.example.instagramclone.Login.LoginActivity;
 import com.example.instagramclone.R;
+import com.example.instagramclone.models.Photo;
 import com.example.instagramclone.models.User;
 import com.example.instagramclone.models.UserAccountSettings;
 import com.example.instagramclone.models.UserSettings;
 import com.example.instagramclone.utils.BottomNavigationViewHelper;
 import com.example.instagramclone.utils.FirebaseMethods;
+import com.example.instagramclone.utils.GridImageAdapter;
 import com.example.instagramclone.utils.UniversalImageLoader;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -37,15 +41,28 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
+
+import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ProfileFragment extends Fragment {
 
     private static final String TAG = "ProfileFragment";
+
+    public interface OnGridImageSelectedListener{
+        // we are using here the activityNumber cause we can access to the photo from many places and we need to know where are we coming from, leñé
+        void onGridImageSelected(Photo photo, int activityNumber);
+    }
+
+    OnGridImageSelectedListener onGridImageSelectedListener;
+
     private static final int ACTIVITY_NUM = 4;
+    private static final int NUMBER_GRID_COLUMNS = 3;
+
     private TextView mPost, mFollowers,mWebsite,  mFollowing,mDisplayName, mUsername, mDescription;
     private ProgressBar mProgressBar;
     private CircleImageView mProfilePhoto;
@@ -54,6 +71,7 @@ public class ProfileFragment extends Fragment {
     private ImageView profileMenu;
     private BottomNavigationViewEx bottomNavigationViewEx;
     private Context mContext;
+
     private FirebaseMethods mFirebaseMethods;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -89,6 +107,8 @@ public class ProfileFragment extends Fragment {
         setupToolBar();
 
         setupFirebaseAuth();
+        setupGridView();
+
         Log.d(TAG, "onCreateView: started");
 
         TextView editProfile = (TextView) view.findViewById(R.id.textEditProfile);
@@ -99,6 +119,8 @@ public class ProfileFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), AccountSettingsActivity.class);
                 intent.putExtra(getString(R.string.calling_activity), getString(R.string.profile_activity));
                 startActivity(intent);
+                getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+
             }
         });
 
@@ -132,6 +154,7 @@ public class ProfileFragment extends Fragment {
                 Log.d(TAG, "onClick: Navigating to account settings");
                 Intent intent = new Intent(mContext, AccountSettingsActivity.class);
                 startActivity(intent);
+                getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
             }
         });
     }
@@ -139,14 +162,54 @@ public class ProfileFragment extends Fragment {
     private void setUpBottomNavigationView(){
         Log.d(TAG, "setUpBottomNavigationView: setting up BottomNavigationView");
         BottomNavigationViewHelper.setUpBottomNavigationView(bottomNavigationViewEx);
-        BottomNavigationViewHelper.enableNavigation(mContext, bottomNavigationViewEx);
+        BottomNavigationViewHelper.enableNavigation(mContext,getActivity(), bottomNavigationViewEx);
         Menu menu = bottomNavigationViewEx.getMenu();
         MenuItem menuItem = menu.getItem(ACTIVITY_NUM);
         menuItem.setChecked(true);
 
     }
 
+    private void setupGridView(){
+        Log.d(TAG, "setupGridView:");
+        final ArrayList<Photo> photos = new ArrayList<>();
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+        Query query = reference
+                .child(getString(R.string.db_user_photos))
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren()){
+                    photos.add(singleSnapshot.getValue(Photo.class));
+                }
+                //setup our image grid
+                int gridWidth = getResources().getDisplayMetrics().widthPixels;
+                int imageWidth = gridWidth / NUMBER_GRID_COLUMNS;
+                gridView.setColumnWidth(imageWidth);
+
+                ArrayList<String> imgUrls = new ArrayList<String>();
+                for (int i = 0 ; i < photos.size(); i++){
+                    imgUrls.add(photos.get(i).getImage_path());
+                }
+
+                GridImageAdapter adapter = new GridImageAdapter(getActivity(), R.layout.layout_grid_imageview, "", imgUrls);
+                gridView.setAdapter(adapter);
+
+                gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        onGridImageSelectedListener.onGridImageSelected(photos.get(position), ACTIVITY_NUM);
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(TAG, "onCancelled: query cancelled");
+            }
+        });
+    }
 
     private void setupFirebaseAuth(){
         Log.d(TAG, "setupFirebaseAuth: setting firebase auth");
@@ -199,4 +262,13 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onAttach(Context context) {
+        try{
+            onGridImageSelectedListener = (OnGridImageSelectedListener) getActivity();
+        }catch (ClassCastException e){
+            Log.e(TAG, "onAttach: ClassCastException: " + e.getMessage() );
+        }
+        super.onAttach(context);
+    }
 }

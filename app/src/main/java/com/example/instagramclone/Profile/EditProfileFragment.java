@@ -1,5 +1,6 @@
 package com.example.instagramclone.Profile;
 
+import android.content.Intent;
 import android.media.Image;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.instagramclone.R;
+import com.example.instagramclone.Share.ShareActivity;
 import com.example.instagramclone.dialogs.ConfirmPasswordDialog;
 import com.example.instagramclone.models.User;
 import com.example.instagramclone.models.UserAccountSettings;
@@ -265,10 +267,19 @@ public class EditProfileFragment extends Fragment implements ConfirmPasswordDial
         mEmail.setText(userSettings.getUser().getEmail());
         mPhoneNumber.setText(String.valueOf(  userSettings.getUser().getPhone_number()) );
 
+        mChangeProfilePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "onClick: changing profile photo");
+                Intent intent = new Intent(getActivity(), ShareActivity.class);
+                // we need to diferentiate between going to shareactivity from here and from the other, to do that we add the flags
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getActivity().startActivity(intent);
+                getActivity().finish();
+            }
+        });
+
     }
-
-
-
 
     private void setupFirebaseAuth(){
         Log.d(TAG, "setupFirebaseAuth: setting firebase auth");
