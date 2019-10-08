@@ -31,6 +31,7 @@ public class UniversalImageLoader {
                 .showImageOnLoading(defaultimage)
                 .showImageForEmptyUri(defaultimage)
                 .showImageOnFail(defaultimage)
+                .considerExifParams(true) //----> rotation fixed
                 .cacheOnDisk(true).cacheInMemory(true)
                 .imageScaleType(ImageScaleType.EXACTLY)
                 .displayer(new FadeInBitmapDisplayer(300)).build();

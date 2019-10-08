@@ -27,6 +27,7 @@ import android.widget.TextView;
 
 import com.example.instagramclone.Login.LoginActivity;
 import com.example.instagramclone.R;
+import com.example.instagramclone.models.Like;
 import com.example.instagramclone.models.Photo;
 import com.example.instagramclone.models.User;
 import com.example.instagramclone.models.UserAccountSettings;
@@ -46,6 +47,9 @@ import com.google.firebase.database.ValueEventListener;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -181,7 +185,30 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for(DataSnapshot singleSnapshot : dataSnapshot.getChildren()){
-                    photos.add(singleSnapshot.getValue(Photo.class));
+
+                    Photo photo = new Photo();
+                    Map<String, Object> objectMap = (HashMap<String, Object> )singleSnapshot.getValue();
+
+                    photo.setCaption(objectMap.get(getString(R.string.field_caption)).toString());
+                    photo.setTags(objectMap.get(getString(R.string.field_tags)).toString());
+                    photo.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
+                    photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
+                    photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
+                    photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
+
+                    List<Like> likeList = new ArrayList<Like>();
+
+                    for(DataSnapshot ds : singleSnapshot
+                            .child(getString(R.string.field_likes))
+                            .getChildren()){
+
+                        Like like = new Like();
+                        like.setUser_id(ds.getValue(Like.class).getUser_id());
+                        likeList.add(like);
+                    }
+                    photo.setLike(likeList);
+                    photos.add(photo);
+
                 }
                 //setup our image grid
                 int gridWidth = getResources().getDisplayMetrics().widthPixels;

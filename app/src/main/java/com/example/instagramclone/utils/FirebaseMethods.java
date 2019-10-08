@@ -237,7 +237,7 @@ public class FirebaseMethods {
 
 
 
-    private String getTimeStamp(){
+    public String getTimeStamp(){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss", Locale.FRENCH);
         sdf.setTimeZone(TimeZone.getTimeZone("Europe/Madrid"));
 
